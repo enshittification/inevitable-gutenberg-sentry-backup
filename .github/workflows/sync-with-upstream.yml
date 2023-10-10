@@ -1,0 +1,32 @@
+name: Sync with Upstream
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # runs every 15 minutes
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # this ensures all history is fetched
+
+    - name: Configure Git
+      run: |
+        git config user.name "GitHub Actions Bot"
+        git config user.email "foo@bar.com"
+
+    - name: Pull changes from Upstream
+      run: |
+        git remote add upstream https://github.com/WordPress/gutenberg.git
+        git fetch upstream
+        git checkout trunk
+        git rebase upstream/trunk
+
+    - name: Push changes to Fork
+      run: git push origin trunk --force-with-lease
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
