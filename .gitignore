@@ -49,3 +49,10 @@ test/storybook-playwright/specs/*-snapshots/**
 test/gutenberg-test-themes/twentytwentyone
 test/gutenberg-test-themes/twentytwentythree
 packages/react-native-editor/src/setup-local.js
+
+# But not these files...
+.github//workflows/*
+!.github/workflows/sync-with-upstream.yml
+
+# ...and directories
+!.github/workflows
