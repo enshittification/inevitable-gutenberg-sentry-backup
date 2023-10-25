@@ -19,14 +19,32 @@ jobs:
         git config user.name "GitHub Actions Bot"
         git config user.email "foo@bar.com"
 
+    - name: Create Conflict Resolution Script
+      run: |
+        echo '#!/bin/bash' > resolve-conflicts.sh
+        echo '' >> resolve-conflicts.sh
+        echo 'IGNORE_FILES=(' >> resolve-conflicts.sh
+        echo '    ".github/workflows/rnmobile-android-runner.yml"' >> resolve-conflicts.sh
+        echo '    ".github/workflows/rnmobile-ios-runner.yml"' >> resolve-conflicts.sh
+        echo '    ".github/workflows/upload-release-to-plugin-repo.yml"' >> resolve-conflicts.sh
+        echo ')' >> resolve-conflicts.sh
+        echo '' >> resolve-conflicts.sh
+        echo 'for FILE in "${IGNORE_FILES[@]}"; do' >> resolve-conflicts.sh
+        echo '    if git ls-files --unmerged | grep -q "$FILE"; then' >> resolve-conflicts.sh
+        echo '        git rm -- "$FILE"' >> resolve-conflicts.sh
+        echo '    fi' >> resolve-conflicts.sh
+        echo 'done' >> resolve-conflicts.sh
+        chmod +x resolve-conflicts.sh
+
     - name: Pull changes from Upstream
       run: |
         git remote add upstream https://github.com/WordPress/gutenberg.git
         git fetch upstream
         git checkout trunk
-        git rebase upstream/trunk
+        git rebase upstream/trunk --exec ./resolve-conflicts.sh -X ours
 
     - name: Push changes to Fork
       run: git push origin trunk --force-with-lease
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
